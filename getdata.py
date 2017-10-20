@@ -8,8 +8,8 @@ ONE_DAY_SECONDS = 24 * 3600
 TWO_HOURS_SECONDS = 2 * 3600
 NOW = datetime.utcnow().timestamp()
 
-START_DATE = NOW - 7 * ONE_DAY_SECONDS
-DELAY_SECONDS = 10
+START_DATE = NOW - int(os.environ['DAY']) * ONE_DAY_SECONDS
+DELAY_SECONDS = 0.2
 
 OVERRIDE_PAIRS = False
 PAIR_LIST = ["BTC_ETH"]
@@ -18,7 +18,7 @@ FETCH_URL = "https://poloniex.com/public?command=returnChartData&currencyPair=%s
 DATA_DIR = "data"
 COLUMNS = ["date","high","low","open","close","volume","quoteVolume","weightedAverage"]
 
-def get_data(pair):
+def get_data(pair, start_time, end_time):
     datafile = os.path.join(DATA_DIR, pair+".csv")
     timefile = os.path.join(DATA_DIR, pair)
 
@@ -27,10 +27,8 @@ def get_data(pair):
         start_time = int(open(timefile).readline()) + 1
     else:
         newfile = True
-        start_time = START_DATE
-    end_time = 9999999999 # start_time + 86400*30
 
-    if NOW - start_time >= TWO_HOURS_SECONDS:
+    if NOW - start_time >= TWO_HOURS_SECONDS/8:
         url = FETCH_URL % (pair, start_time, end_time)
         print("Get %s from %d to %d" % (pair, start_time, end_time))
 
@@ -66,8 +64,11 @@ def main():
     pairs = [pair for pair in df.columns if pair.startswith('BTC')] if not OVERRIDE_PAIRS else PAIR_LIST
     print(pairs)
 
+    end_time = START_DATE + ONE_DAY_SECONDS
+    
     for pair in pairs:
-        get_data(pair)
+        print(os.environ['DAY'])
+        get_data(pair, START_DATE, end_time)
 
 if __name__ == '__main__':
     main()
